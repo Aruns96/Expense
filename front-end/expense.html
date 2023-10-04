@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<form onsubmit="saveItem(event)">
+    <label for="amount">choose expense amount</label>
+    <input type="number" id ="amount" name="amount">
+    <label for="desc">choose description</label>
+    <input type="text" id ="desc" name="desc">
+    <label for="type-expense">choose type of expense</label>
+    <select name="typeExpense" id="typeExpense">
+      <option value="movie">Movie</option>
+      <option value="petrol">Petrol</option>
+      <option value="stationary">Stationary</option>
+      <option value="misc">misc</option>
+    </select>
+    <button >submit </button>
+  </form>
+  
+  <ul id="listItems"></ul>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  <script >
+    function saveItem(event){
+     event.preventDefault();
+     const amount = event.target.amount.value;
+     const desc = event.target.desc.value;
+     const typeExpense = event.target.typeExpense.value;
+ 
+    const obj = {
+     amount,
+     desc,
+     typeExpense
+    }
+ 
+     
+     axios.post("http://localhost:3000/expense/add-expense" ,obj)
+     .then(res =>{
+         console.log(res);
+         showItems(res.data.newExpenseData);
+         
+     })
+     .catch(e => {
+         console.log(e)
+         document.body.innerHTML=document.body.innerHTML + "<h3>error occured</h3>"
+     })
+     
+ 
+ 
+    }
+ 
+     
+ 
+ 
+    function showItems(expense){
+ 
+     
+     
+     document.getElementById("amount").value = "";
+     document.getElementById("desc").value = "";
+     document.getElementById("typeExpense").value = "";
+     const parentNode = document.getElementById("listItems");
+     
+     const childHTML = `<li id=${expense.id}>${expense.amount}-${expense.desc}-${expense.typeExpense}<button onClick=deleteExpense('${expense.id}')>Delete</button></li>`
+     parentNode.innerHTML = parentNode.innerHTML+childHTML;
+     
+     
+ 
+    }
+
+    function deleteExpense(expenseId){
+     axios.delete(`http://localhost:3000/expense/delete-expense/${expenseId}`).then(res=>{
+        
+        removeExpense(expenseId);
+     }).catch(e=>console.log(e));
+    }
+ 
+    function removeExpense(expenseId){
+     const parentNode = document.getElementById("listItems");
+     const nodeToDelete = document.getElementById(expenseId);
+     if(nodeToDelete){
+         parentNode.removeChild(nodeToDelete);
+     }
+ 
+    }
+    document.addEventListener("DOMContentLoaded",()=>{
+         axios.get("http://localhost:3000/expense/get-expense").then(res =>{
+            for(let i=0; i< res.data.allExpense.length ;i++){
+             showItems(res.data.allExpense[i]);
+            }
+            console.log(res.data)
+         })
+         .catch(e=>console.log(e))
+     })
+  </script> 
+  </body>
+  </html>    
